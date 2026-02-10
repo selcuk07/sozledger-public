@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="soz-ledger",
-    version="0.1.0",
+    version="0.2.0",
     description="Python SDK for Soz Ledger -- AI Agent Trust Protocol",
     packages=find_packages(),
     python_requires=">=3.11",

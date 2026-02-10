@@ -1,5 +1,14 @@
+from __future__ import annotations
+
+import dataclasses
 from dataclasses import dataclass, field
 from typing import Any
+
+
+def _from_dict(cls: type, data: dict[str, Any]):
+    """Construct a dataclass instance, silently ignoring unknown fields."""
+    known = {f.name for f in dataclasses.fields(cls)}
+    return cls(**{k: v for k, v in data.items() if k in known})
 
 
 @dataclass
@@ -41,6 +50,7 @@ class Evidence:
 @dataclass
 class TrustScore:
     entity_id: str
+    entity_name: str | None = None
     overall_score: float | None = None
     level: str = "Unrated"
     rated: bool = False
@@ -51,3 +61,18 @@ class TrustScore:
     category_scores: dict | None = None
     streak: int = 0
     score_version: str = "v1"
+    last_updated: str | None = None
+
+
+@dataclass
+class ScoreHistoryEntry:
+    score: float | None
+    level: str
+    timestamp: str | None = None
+    version: str = "v1"
+
+
+@dataclass
+class ScoreHistoryResponse:
+    entity_id: str
+    history: list[ScoreHistoryEntry] = field(default_factory=list)

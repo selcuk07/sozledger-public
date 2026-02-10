@@ -30,6 +30,14 @@ promise = client.promises.create(
     category="delivery"
 )
 
+# Submit evidence
+client.evidence.submit(
+    promise_id=promise.id,
+    type="webhook",
+    submitted_by=agent.id,
+    payload={"report": "..."}
+)
+
 # Fulfill the promise
 client.promises.fulfill(promise.id)
 
@@ -38,9 +46,34 @@ score = client.scores.get(agent.id)
 print(f"{score.level}: {score.overall_score}")
 ```
 
+## Error Handling
+
+```python
+from soz_ledger import SozLedgerClient, SozLedgerError
+
+client = SozLedgerClient(api_key="your_api_key")
+
+try:
+    client.entities.get("non-existent-id")
+except SozLedgerError as err:
+    print(err.status)  # e.g. 404
+    print(err.code)    # e.g. "not_found"
+    print(err.body)    # full API error response dict
+```
+
+## Context Manager
+
+The client can be used as a context manager to ensure the underlying HTTP
+connection is closed:
+
+```python
+with SozLedgerClient(api_key="your_api_key") as client:
+    agent = client.entities.create(name="MyAgent", type="agent")
+```
+
 ## API Reference
 
-### `SozLedgerClient(api_key, base_url="http://localhost:8000")`
+### `SozLedgerClient(api_key, base_url="http://localhost:8000", timeout=30.0)`
 
 Main client. Provides access to:
 
