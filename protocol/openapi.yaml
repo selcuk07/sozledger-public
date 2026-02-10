@@ -1,13 +1,15 @@
 openapi: 3.1.0
 info:
-  title: Soz Ledger API
+  title: Söz Ledger API
   version: 0.1.0
-  description: AI Agent Trust Protocol
+  description: AI Agent Trust Protocol — Track, verify, and score agent promises.
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
 
 servers:
+  - url: https://api-production-c4c8.up.railway.app
+    description: Production server
   - url: http://localhost:8000
     description: Local development server
 
@@ -33,7 +35,7 @@ paths:
                     type: string
                   version:
                     type: string
-                  protocol:
+                  status:
                     type: string
 
   /health:
@@ -155,6 +157,8 @@ paths:
           description: Invalid request body
         "401":
           description: Unauthorized
+        "429":
+          description: Anti-gaming limit exceeded
 
   /v1/promises/{promise_id}:
     get:
@@ -186,7 +190,7 @@ paths:
     patch:
       operationId: updatePromiseStatus
       summary: Update promise status
-      description: Transition a promise to a new status.
+      description: Transition a promise to a new status (fulfilled, broken, or disputed).
       tags:
         - Promises
       parameters:
@@ -215,6 +219,8 @@ paths:
           description: Unauthorized
         "404":
           description: Promise not found
+        "429":
+          description: Fulfillment velocity limit exceeded
 
   /v1/promises/{promise_id}/evidence:
     post:
@@ -316,19 +322,188 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+            minimum: 1
+            maximum: 200
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
       responses:
         "200":
           description: Score history
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/TrustScoreResponse"
+                type: object
+                properties:
+                  entity_id:
+                    type: string
+                    format: uuid
+                  history:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TrustScoreSnapshot"
+                  total:
+                    type: integer
         "401":
           description: Unauthorized
         "404":
           description: Entity not found
+
+  /v1/webhooks:
+    post:
+      operationId: createWebhook
+      summary: Register a webhook
+      description: Register a webhook URL to receive event notifications.
+      tags:
+        - Webhooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebhookCreate"
+      responses:
+        "201":
+          description: Webhook created (includes secret — save it, shown only once)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookResponse"
+        "400":
+          description: Invalid request body
+        "401":
+          description: Unauthorized
+    get:
+      operationId: listWebhooks
+      summary: List webhooks
+      description: List all webhooks for the authenticated entity.
+      tags:
+        - Webhooks
+      responses:
+        "200":
+          description: List of webhooks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WebhookResponsePublic"
+        "401":
+          description: Unauthorized
+
+  /v1/webhooks/{webhook_id}:
+    get:
+      operationId: getWebhook
+      summary: Get webhook by ID
+      description: Retrieve details of a registered webhook.
+      tags:
+        - Webhooks
+      parameters:
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Webhook details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookResponsePublic"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Webhook not found
+    patch:
+      operationId: updateWebhook
+      summary: Update a webhook
+      description: Update webhook URL, event types, or active status.
+      tags:
+        - Webhooks
+      parameters:
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebhookUpdate"
+      responses:
+        "200":
+          description: Webhook updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookResponsePublic"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Webhook not found
+    delete:
+      operationId: deleteWebhook
+      summary: Delete a webhook
+      description: Permanently delete a webhook registration.
+      tags:
+        - Webhooks
+      parameters:
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Webhook deleted
+        "401":
+          description: Unauthorized
+        "404":
+          description: Webhook not found
+
+  /v1/webhooks/{webhook_id}/logs:
+    get:
+      operationId: getWebhookLogs
+      summary: Get webhook delivery logs
+      description: Retrieve delivery attempt logs for a webhook (latest 100).
+      tags:
+        - Webhooks
+      parameters:
+        - name: webhook_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Delivery logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DeliveryLogResponse"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Webhook not found
 
 components:
   securitySchemes:
@@ -372,6 +547,16 @@ components:
         - file
         - link
 
+    WebhookEventType:
+      type: string
+      enum:
+        - promise.created
+        - promise.fulfilled
+        - promise.broken
+        - promise.expired
+        - score.updated
+        - evidence.submitted
+
     EntityCreate:
       type: object
       required:
@@ -412,6 +597,11 @@ components:
           type:
             - string
             - "null"
+        api_key:
+          type:
+            - string
+            - "null"
+          description: Only returned on entity creation.
         created_at:
           type: string
           format: date-time
@@ -561,6 +751,8 @@ components:
         entity_id:
           type: string
           format: uuid
+        entity_name:
+          type: string
         overall_score:
           type:
             - number
@@ -570,10 +762,10 @@ components:
           description: Composite trust score between 0 and 1, or null if unrated.
         level:
           type: string
-          description: Human-readable trust level label.
+          description: "Human-readable trust level: Exceptional, Highly Trusted, Reliable, Developing, Low Trust, or Unrated."
         rated:
           type: boolean
-          description: Whether the entity has enough history to be rated.
+          description: Whether the entity has enough history to be rated (minimum 5 promises).
         total_promises:
           type: integer
         fulfilled_count:
@@ -594,3 +786,200 @@ components:
         score_version:
           type: string
           description: Version identifier of the scoring algorithm.
+        last_updated:
+          type:
+            - string
+            - "null"
+          format: date-time
+
+    TrustScoreSnapshot:
+      type: object
+      properties:
+        score:
+          type: number
+        level:
+          type: string
+        total_promises:
+          type: integer
+        fulfilled_count:
+          type: integer
+        broken_count:
+          type: integer
+        streak:
+          type: integer
+        avg_delay_hours:
+          type: number
+        category_scores:
+          type:
+            - object
+            - "null"
+        score_version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    WebhookCreate:
+      type: object
+      required:
+        - url
+        - event_types
+      properties:
+        url:
+          type: string
+          format: uri
+        event_types:
+          type: array
+          items:
+            $ref: "#/components/schemas/WebhookEventType"
+          minItems: 1
+
+    WebhookUpdate:
+      type: object
+      properties:
+        url:
+          type:
+            - string
+            - "null"
+          format: uri
+        event_types:
+          type:
+            - array
+            - "null"
+          items:
+            $ref: "#/components/schemas/WebhookEventType"
+        is_active:
+          type:
+            - boolean
+            - "null"
+
+    WebhookResponse:
+      type: object
+      required:
+        - id
+        - entity_id
+        - url
+        - secret
+        - event_types
+        - is_active
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        entity_id:
+          type: string
+          format: uuid
+        url:
+          type: string
+        secret:
+          type: string
+          description: HMAC signing secret. Only returned on creation.
+        event_types:
+          type: array
+          items:
+            $ref: "#/components/schemas/WebhookEventType"
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    WebhookResponsePublic:
+      type: object
+      required:
+        - id
+        - entity_id
+        - url
+        - event_types
+        - is_active
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        entity_id:
+          type: string
+          format: uuid
+        url:
+          type: string
+        event_types:
+          type: array
+          items:
+            $ref: "#/components/schemas/WebhookEventType"
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    DeliveryLogResponse:
+      type: object
+      required:
+        - id
+        - webhook_id
+        - event_id
+        - event_type
+        - attempt_number
+        - success
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        webhook_id:
+          type: string
+          format: uuid
+        event_id:
+          type: string
+          format: uuid
+        event_type:
+          type: string
+        attempt_number:
+          type: integer
+        status_code:
+          type:
+            - integer
+            - "null"
+        response_body:
+          type:
+            - string
+            - "null"
+        success:
+          type: boolean
+        error_message:
+          type:
+            - string
+            - "null"
+        next_retry_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+
+    WebhookPayload:
+      type: object
+      description: Payload delivered to webhook URLs. Signed with HMAC-SHA256.
+      properties:
+        event_type:
+          $ref: "#/components/schemas/WebhookEventType"
+        event_id:
+          type: string
+          format: uuid
+        timestamp:
+          type: string
+          format: date-time
+        data:
+          type: object
+          description: Event-specific data (promise, evidence, or score details).
