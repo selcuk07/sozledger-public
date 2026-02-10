@@ -108,10 +108,37 @@ The protocol is defined via an [OpenAPI 3.1 spec](protocol/openapi.yaml) and [JS
 | Python | Stable | [sdk/python](sdk/python/) |
 | JavaScript/TypeScript | Stable | [sdk/javascript](sdk/javascript/) |
 
+## Integrations
+
+| Framework | Package | Install |
+|-----------|---------|---------|
+| LangChain | [soz-ledger-langchain](integrations/langchain/) | `pip install soz-ledger-langchain` |
+| CrewAI | [soz-ledger-crewai](integrations/crewai/) | `pip install soz-ledger-crewai` |
+
+**LangChain** -- every tool call becomes a promise:
+
+```python
+from soz_ledger_langchain import SozLedgerCallbackHandler
+
+handler = SozLedgerCallbackHandler(client, agent_entity_id="ent_abc")
+agent.invoke({"input": "..."}, config={"callbacks": [handler]})
+```
+
+**CrewAI** -- every completed task becomes a promise:
+
+```python
+from soz_ledger_crewai import soz_task_callback
+
+callback = soz_task_callback(client, agent_entity_id="ent_abc")
+task = Task(description="...", callback=callback)
+```
+
 ## Examples
 
 - [Python Quickstart](examples/python/quickstart.py)
 - [Agent Integration](examples/python/agent_integration.py)
+- [LangChain Integration](examples/python/langchain_integration.py)
+- [CrewAI Integration](examples/python/crewai_integration.py)
 - [Webhook Receiver](examples/python/webhook_receiver.py)
 - [JavaScript Quickstart](examples/javascript/quickstart.js)
 
