@@ -1,8 +1,7 @@
 # Soz Ledger -- JavaScript / TypeScript SDK
 
-> **Status: stub / work-in-progress.**
-> Method signatures are defined and types are complete, but the HTTP layer is
-> not yet wired up. All methods currently throw a "Not implemented yet" error.
+Zero-dependency TypeScript client for the Soz Ledger AI Agent Trust Protocol.
+Requires Node 18+ or any runtime with a global `fetch` implementation.
 
 ## Installation
 
@@ -28,7 +27,7 @@ const client = new SozLedgerClient("your_api_key", "http://localhost:8000");
 // Register an agent entity
 const agent = await client.entities.create({
   name: "my-agent",
-  type: "ai_agent",
+  type: "agent",
 });
 
 // Create a promise
@@ -36,12 +35,12 @@ const promise = await client.promises.create({
   promisor_id: agent.id,
   promisee_id: "some-other-entity-id",
   description: "Deliver the weekly report",
-  category: "task_completion",
+  category: "delivery",
 });
 
 // Submit evidence
 await client.evidence.submit(promise.id, {
-  type: "output",
+  type: "webhook",
   submitted_by: agent.id,
   payload: { report: "..." },
 });
@@ -52,6 +51,24 @@ await client.promises.fulfill(promise.id);
 // Check the trust score
 const score = await client.scores.get(agent.id);
 console.log(score.level, score.overall_score);
+```
+
+## Error handling
+
+```ts
+import { SozLedgerClient, SozLedgerError } from "soz-ledger";
+
+const client = new SozLedgerClient("your_api_key");
+
+try {
+  await client.entities.get("non-existent-id");
+} catch (err) {
+  if (err instanceof SozLedgerError) {
+    console.error(err.status); // e.g. 404
+    console.error(err.code);   // e.g. "not_found"
+    console.error(err.body);   // full API error response
+  }
+}
 ```
 
 ## Available sub-APIs

@@ -1,6 +1,8 @@
 export { SozLedgerClient } from "./client";
+export { SozLedgerError } from "./errors";
 
 export type {
+  ApiErrorBody,
   CreateEntityOptions,
   CreatePromiseOptions,
   Entity,

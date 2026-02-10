@@ -1,16 +1,14 @@
 // ── Enums / union types ─────────────────────────────────────────────────────
 
 /** The kind of participant in the trust graph. */
-export type EntityType = "ai_agent" | "service" | "human" | "organisation";
+export type EntityType = "agent" | "human" | "org";
 
 /** High-level category that a promise belongs to. */
 export type PromiseCategory =
-  | "data_delivery"
-  | "task_completion"
-  | "response_time"
-  | "accuracy"
-  | "privacy"
-  | "safety"
+  | "delivery"
+  | "payment"
+  | "response"
+  | "uptime"
   | "custom";
 
 /** Lifecycle status of a promise. */
@@ -22,11 +20,11 @@ export type PromiseStatus =
   | "expired";
 
 /** The kind of evidence attached to a promise. */
-export type EvidenceType = "output" | "log" | "attestation" | "metric";
+export type EvidenceType = "api_callback" | "webhook" | "manual" | "file" | "link";
 
 // ── Core interfaces ─────────────────────────────────────────────────────────
 
-/** A participant (agent, service, human, or organisation) in the trust graph. */
+/** A participant (agent, human, or organisation) in the trust graph. */
 export interface Entity {
   id: string;
   name: string;
@@ -65,6 +63,7 @@ export interface Evidence {
 /** Computed trust score for an entity. */
 export interface TrustScore {
   entity_id: string;
+  entity_name?: string;
   overall_score: number | null;
   level: string;
   rated: boolean;
@@ -75,6 +74,7 @@ export interface TrustScore {
   category_scores?: Record<string, number> | null;
   streak: number;
   score_version: string;
+  last_updated?: string | null;
 }
 
 // ── Request / option types ──────────────────────────────────────────────────
@@ -102,9 +102,18 @@ export interface SubmitEvidenceOptions {
 
 export interface ScoreHistoryResponse {
   entity_id: string;
-  snapshots: Array<{
-    timestamp: string;
-    overall_score: number | null;
+  history: Array<{
+    score: number | null;
     level: string;
+    timestamp: string;
+    version: string;
   }>;
+}
+
+// ── Error types ─────────────────────────────────────────────────────────────
+
+export interface ApiErrorBody {
+  error: string;
+  message: string;
+  details?: Array<{ field: string; message: string }>;
 }

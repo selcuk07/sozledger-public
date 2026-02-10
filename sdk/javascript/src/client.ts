@@ -1,4 +1,5 @@
 import type {
+  ApiErrorBody,
   CreateEntityOptions,
   CreatePromiseOptions,
   Entity,
@@ -8,6 +9,7 @@ import type {
   SubmitEvidenceOptions,
   TrustScore,
 } from "./types";
+import { SozLedgerError } from "./errors";
 
 // ── Sub-API classes ─────────────────────────────────────────────────────────
 
@@ -108,15 +110,13 @@ class ScoresAPI {
  *
  * ```ts
  * const client = new SozLedgerClient("your_api_key");
- * const entity = await client.entities.create({ name: "my-agent", type: "ai_agent" });
+ * const entity = await client.entities.create({ name: "my-agent", type: "agent" });
  * ```
- *
- * **Note:** This is a stub -- method bodies will be implemented in a future
- * release.  All methods currently throw a "Not implemented yet" error.
  */
 export class SozLedgerClient {
   private apiKey: string;
   private baseUrl: string;
+  private timeout: number;
 
   /** Sub-API for entity operations. */
   public readonly entities: EntitiesAPI;
@@ -127,9 +127,14 @@ export class SozLedgerClient {
   /** Sub-API for trust-score operations. */
   public readonly scores: ScoresAPI;
 
-  constructor(apiKey: string, baseUrl: string = "http://localhost:8000") {
+  constructor(
+    apiKey: string,
+    baseUrl: string = "http://localhost:8000",
+    timeout: number = 30_000,
+  ) {
     this.apiKey = apiKey;
     this.baseUrl = baseUrl.replace(/\/+$/, "");
+    this.timeout = timeout;
 
     this.entities = new EntitiesAPI(this);
     this.promises = new PromisesAPI(this);
@@ -137,26 +142,72 @@ export class SozLedgerClient {
     this.scores = new ScoresAPI(this);
   }
 
-  // ── Internal HTTP helpers (stubs) ───────────────────────────────────────
+  // ── Internal HTTP helpers ───────────────────────────────────────────────
+
+  private async _request<T>(
+    method: string,
+    path: string,
+    body?: unknown,
+  ): Promise<T> {
+    const url = `${this.baseUrl}${path}`;
+
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${this.apiKey}`,
+      "Content-Type": "application/json",
+    };
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.timeout);
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method,
+        headers,
+        body: body != null ? JSON.stringify(body) : undefined,
+        signal: controller.signal,
+      });
+    } catch (err: unknown) {
+      clearTimeout(timer);
+      if (err instanceof Error && err.name === "AbortError") {
+        throw new SozLedgerError(0, {
+          error: "timeout",
+          message: `Request timed out after ${this.timeout}ms`,
+        });
+      }
+      throw new SozLedgerError(0, {
+        error: "network_error",
+        message: err instanceof Error ? err.message : "Unknown network error",
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+
+    if (!response.ok) {
+      let errorBody: ApiErrorBody | undefined;
+      try {
+        errorBody = (await response.json()) as ApiErrorBody;
+      } catch {
+        // response body wasn't valid JSON — leave errorBody undefined
+      }
+      throw new SozLedgerError(response.status, errorBody);
+    }
+
+    return (await response.json()) as T;
+  }
 
   /** @internal */
   async _get<T>(path: string): Promise<T> {
-    throw new Error(
-      `Not implemented yet: GET ${this.baseUrl}${path}`,
-    );
+    return this._request<T>("GET", path);
   }
 
   /** @internal */
-  async _post<T>(path: string, body: Record<string, unknown>): Promise<T> {
-    throw new Error(
-      `Not implemented yet: POST ${this.baseUrl}${path}`,
-    );
+  async _post<T>(path: string, body: unknown): Promise<T> {
+    return this._request<T>("POST", path, body);
   }
 
   /** @internal */
-  async _patch<T>(path: string, body: Record<string, unknown>): Promise<T> {
-    throw new Error(
-      `Not implemented yet: PATCH ${this.baseUrl}${path}`,
-    );
+  async _patch<T>(path: string, body: unknown): Promise<T> {
+    return this._request<T>("PATCH", path, body);
   }
 }
