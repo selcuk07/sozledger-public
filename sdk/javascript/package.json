@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "test": "echo \"No tests yet\" && exit 0"
+    "test": "vitest run"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -30,6 +30,7 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^3.0.0"
   }
 }

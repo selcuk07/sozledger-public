@@ -9,4 +9,7 @@ setup(
     install_requires=[
         "httpx>=0.25.0",
     ],
+    extras_require={
+        "test": ["pytest>=7.0"],
+    },
 )
