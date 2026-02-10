@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Soz Ledger — AI Agent Trust Protocol</title>
+  <meta name="description" content="Track, verify, and score agent promises. Open protocol for building trust between AI agents, humans, and organizations.">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --accent: #4f46e5;
+      --accent-light: #6366f1;
+      --accent-bg: #eef2ff;
+      --text: #111827;
+      --text-secondary: #6b7280;
+      --bg: #ffffff;
+      --bg-alt: #f9fafb;
+      --border: #e5e7eb;
+      --radius: 12px;
+      --max-w: 1120px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---- Layout ---- */
+    .container { max-width: var(--max-w); margin: 0 auto; padding: 0 24px; }
+    section { padding: 80px 0; }
+    section:nth-child(even) { background: var(--bg-alt); }
+
+    .section-label {
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+    .section-subtitle {
+      font-size: 1.125rem;
+      color: var(--text-secondary);
+      max-width: 640px;
+      margin-bottom: 48px;
+    }
+    .section-header-center {
+      text-align: center;
+    }
+    .section-header-center .section-subtitle {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* ---- Hero ---- */
+    .hero {
+      padding: 120px 0 100px;
+      background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 50%, #c7d2fe 100%);
+      text-align: center;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 14px;
+      border-radius: 100px;
+      margin-bottom: 24px;
+      letter-spacing: 0.05em;
+    }
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    .hero .tagline {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+    .hero .description {
+      font-size: 1.125rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto 36px;
+    }
+    .hero-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-secondary { background: #fff; color: var(--text); border: 1px solid var(--border); }
+
+    /* ---- Problem / Solution ---- */
+    .problem-solution { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+    .ps-card {
+      padding: 32px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .ps-card.solution { border-color: var(--accent); background: var(--accent-bg); }
+    .ps-card h3 { font-size: 1.25rem; font-weight: 700; margin-bottom: 12px; }
+    .ps-card p { color: var(--text-secondary); }
+
+    /* ---- How It Works ---- */
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .step {
+      text-align: center;
+      padding: 32px 16px;
+      border-radius: var(--radius);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      position: relative;
+    }
+    .step-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--accent-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin: 0 auto 16px;
+    }
+    .step-num {
+      position: absolute;
+      top: 12px;
+      left: 16px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .step h4 { font-size: 1.05rem; font-weight: 700; margin-bottom: 8px; }
+    .step p { font-size: 0.875rem; color: var(--text-secondary); }
+
+    /* Connector arrows between steps */
+    .step:not(:last-child)::after {
+      content: "\2192";
+      position: absolute;
+      right: -18px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.25rem;
+      color: var(--accent);
+      font-weight: 700;
+      z-index: 1;
+    }
+
+    /* ---- Trust Levels ---- */
+    .trust-bar { display: flex; gap: 4px; margin-bottom: 32px; border-radius: 8px; overflow: hidden; }
+    .trust-bar-segment {
+      flex: 1;
+      height: 8px;
+      transition: transform 0.2s;
+    }
+    .trust-bar-segment:hover { transform: scaleY(2); }
+
+    .trust-levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .trust-card {
+      padding: 20px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .trust-card .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    .trust-card h4 { font-size: 0.95rem; font-weight: 700; display: inline; vertical-align: middle; }
+    .trust-card .range { display: block; font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px; }
+
+    .clr-unrated  { background: #9ca3af; }
+    .clr-low      { background: #ef4444; }
+    .clr-dev      { background: #eab308; }
+    .clr-reliable { background: #22c55e; }
+    .clr-high     { background: #3b82f6; }
+    .clr-exc      { background: #f59e0b; }
+
+    /* ---- Code Example ---- */
+    .code-wrapper {
+      background: #1e1e2e;
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .code-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: #181825;
+      font-size: 0.8rem;
+      color: #a6adc8;
+    }
+    .code-header .dots { display: flex; gap: 6px; }
+    .code-header .dots span { width: 10px; height: 10px; border-radius: 50%; }
+    .code-header .dots span:nth-child(1) { background: #f38ba8; }
+    .code-header .dots span:nth-child(2) { background: #f9e2af; }
+    .code-header .dots span:nth-child(3) { background: #a6e3a1; }
+
+    pre {
+      padding: 24px;
+      overflow-x: auto;
+      font-size: 0.875rem;
+      line-height: 1.7;
+    }
+    code {
+      font-family: "SF Mono", "Fira Code", "Fira Mono", Menlo, Consolas, monospace;
+      color: #cdd6f4;
+    }
+    /* Syntax colors */
+    .kw { color: #cba6f7; }
+    .fn { color: #89b4fa; }
+    .st { color: #a6e3a1; }
+    .cm { color: #6c7086; font-style: italic; }
+    .nb { color: #f9e2af; }
+    .op { color: #89dceb; }
+
+    /* ---- Features Grid ---- */
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .feature-card {
+      padding: 28px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: var(--accent-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      margin-bottom: 16px;
+    }
+    .feature-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+    .feature-card p { font-size: 0.875rem; color: var(--text-secondary); }
+
+    /* ---- Use Cases ---- */
+    .use-cases { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .use-case {
+      padding: 32px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .use-case-icon {
+      font-size: 2rem;
+      margin-bottom: 16px;
+    }
+    .use-case h4 { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
+    .use-case p { font-size: 0.9rem; color: var(--text-secondary); }
+
+    /* ---- Footer ---- */
+    footer {
+      padding: 48px 0;
+      background: #111827;
+      color: #d1d5db;
+    }
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+    .footer-brand { font-size: 1.1rem; font-weight: 700; color: #fff; }
+    .footer-links { display: flex; gap: 24px; flex-wrap: wrap; }
+    .footer-links a { color: #9ca3af; text-decoration: none; font-size: 0.9rem; transition: color 0.15s; }
+    .footer-links a:hover { color: #fff; }
+    .footer-license { font-size: 0.8rem; color: #6b7280; width: 100%; text-align: center; margin-top: 16px; }
+
+    /* ---- Responsive ---- */
+    @media (max-width: 768px) {
+      section { padding: 56px 0; }
+      .hero { padding: 80px 0 64px; }
+      .hero h1 { font-size: 2.25rem; }
+      .hero .tagline { font-size: 1.2rem; }
+      .hero .description { font-size: 1rem; }
+
+      .problem-solution { grid-template-columns: 1fr; gap: 16px; }
+
+      .steps {
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .step:not(:last-child)::after { display: none; }
+
+      .trust-levels { grid-template-columns: repeat(2, 1fr); }
+
+      .features { grid-template-columns: 1fr; }
+
+      .use-cases { grid-template-columns: 1fr; }
+
+      .section-title { font-size: 1.6rem; }
+
+      .footer-inner { flex-direction: column; text-align: center; }
+      .footer-links { justify-content: center; }
+    }
+
+    @media (max-width: 480px) {
+      .steps { grid-template-columns: 1fr; }
+      .trust-levels { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container">
+      <span class="hero-badge">Open Protocol &middot; MIT Licensed</span>
+      <h1>Soz Ledger</h1>
+      <p class="tagline">AI Agent Trust Protocol</p>
+      <p class="description">Track, verify, and score agent promises. Open protocol for building trust between AI agents, humans, and organizations.</p>
+      <div class="hero-buttons">
+        <a href="../sdk/python/" class="btn btn-primary">Get Started</a>
+        <a href="../docs/whitepaper.md" class="btn btn-secondary">Read Whitepaper</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Problem / Solution -->
+  <section>
+    <div class="container">
+      <div class="section-header-center">
+        <p class="section-label">The Challenge</p>
+        <h2 class="section-title">Trust in an Autonomous World</h2>
+        <p class="section-subtitle">As agents act independently, the need for verifiable trust becomes critical.</p>
+      </div>
+      <div class="problem-solution">
+        <div class="ps-card">
+          <h3>The Problem</h3>
+          <p>How do you trust an agent you've never interacted with? Today there is no standardized way for agents to prove reliability, leaving humans and systems guessing.</p>
+        </div>
+        <div class="ps-card solution">
+          <h3>The Solution</h3>
+          <p>Promise-based trust &mdash; objective, portable, queryable. Agents make promises, submit evidence, and earn trust scores that anyone in the network can verify.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section>
+    <div class="container">
+      <div class="section-header-center">
+        <p class="section-label">How It Works</p>
+        <h2 class="section-title">Four Steps to Trust</h2>
+        <p class="section-subtitle">A simple, transparent workflow from registration to reputation.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <span class="step-num">01</span>
+          <div class="step-icon">&#128221;</div>
+          <h4>Register</h4>
+          <p>Agents, humans, or orgs register as entities in the network.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">02</span>
+          <div class="step-icon">&#129309;</div>
+          <h4>Promise</h4>
+          <p>Create promises with deadlines, categories, and counterparties.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">03</span>
+          <div class="step-icon">&#128270;</div>
+          <h4>Verify</h4>
+          <p>Submit evidence to prove fulfillment&mdash;API callbacks, logs, attestations.</p>
+        </div>
+        <div class="step">
+          <span class="step-num">04</span>
+          <div class="step-icon">&#11088;</div>
+          <h4>Score</h4>
+          <p>Trust scores are calculated from promise history, recency, and diversity.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust Levels -->
+  <section>
+    <div class="container">
+      <div class="section-header-center">
+        <p class="section-label">Reputation</p>
+        <h2 class="section-title">Trust Levels</h2>
+        <p class="section-subtitle">Every entity earns a score from 0.00 to 1.00, mapped to six human-readable levels.</p>
+      </div>
+      <div class="trust-bar">
+        <div class="trust-bar-segment clr-unrated"></div>
+        <div class="trust-bar-segment clr-low"></div>
+        <div class="trust-bar-segment clr-dev"></div>
+        <div class="trust-bar-segment clr-reliable"></div>
+        <div class="trust-bar-segment clr-high"></div>
+        <div class="trust-bar-segment clr-exc"></div>
+      </div>
+      <div class="trust-levels">
+        <div class="trust-card">
+          <span class="dot clr-unrated"></span><h4>Unrated</h4>
+          <span class="range">No score yet</span>
+        </div>
+        <div class="trust-card">
+          <span class="dot clr-low"></span><h4>Low Trust</h4>
+          <span class="range">0.00 &ndash; 0.30</span>
+        </div>
+        <div class="trust-card">
+          <span class="dot clr-dev"></span><h4>Developing</h4>
+          <span class="range">0.31 &ndash; 0.60</span>
+        </div>
+        <div class="trust-card">
+          <span class="dot clr-reliable"></span><h4>Reliable</h4>
+          <span class="range">0.61 &ndash; 0.80</span>
+        </div>
+        <div class="trust-card">
+          <span class="dot clr-high"></span><h4>Highly Trusted</h4>
+          <span class="range">0.81 &ndash; 0.95</span>
+        </div>
+        <div class="trust-card">
+          <span class="dot clr-exc"></span><h4>Exceptional</h4>
+          <span class="range">0.96 &ndash; 1.00</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Code Example -->
+  <section>
+    <div class="container">
+      <div class="section-header-center">
+        <p class="section-label">Developer Experience</p>
+        <h2 class="section-title">Up and Running in Minutes</h2>
+        <p class="section-subtitle">Install the Python SDK and start tracking trust in a few lines of code.</p>
+      </div>
+      <div class="code-wrapper">
+        <div class="code-header">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <span>quickstart.py</span>
+        </div>
+        <pre><code><span class="kw">from</span> soz_ledger <span class="kw">import</span> SozLedgerClient
+
+client <span class="op">=</span> SozLedgerClient(api_key<span class="op">=</span><span class="st">"your_api_key"</span>)
+
+<span class="cm"># Register an agent</span>
+agent <span class="op">=</span> client.entities.<span class="fn">create</span>(
+    name<span class="op">=</span><span class="st">"DataFetchBot"</span>,
+    type<span class="op">=</span><span class="st">"agent"</span>,
+    metadata<span class="op">=</span>{<span class="st">"platform"</span>: <span class="st">"langchain"</span>, <span class="st">"version"</span>: <span class="st">"1.0"</span>}
+)
+
+<span class="cm"># Create a promise</span>
+promise <span class="op">=</span> client.promises.<span class="fn">create</span>(
+    promisor_id<span class="op">=</span>agent.id,
+    promisee_id<span class="op">=</span><span class="st">"user_abc"</span>,
+    description<span class="op">=</span><span class="st">"Fetch and deliver report within 30 seconds"</span>,
+    deadline<span class="op">=</span><span class="st">"2026-02-10T15:00:00Z"</span>,
+    category<span class="op">=</span><span class="st">"delivery"</span>
+)
+
+<span class="cm"># Submit evidence and fulfill</span>
+client.evidence.<span class="fn">submit</span>(
+    promise_id<span class="op">=</span>promise.id,
+    type<span class="op">=</span><span class="st">"api_callback"</span>,
+    submitted_by<span class="op">=</span>agent.id,
+    payload<span class="op">=</span>{<span class="st">"status"</span>: <span class="nb">200</span>, <span class="st">"delivered_at"</span>: <span class="st">"2026-02-10T14:59:45Z"</span>}
+)
+client.promises.<span class="fn">fulfill</span>(promise.id)
+
+<span class="cm"># Check trust score</span>
+score <span class="op">=</span> client.scores.<span class="fn">get</span>(agent.id)
+<span class="fn">print</span>(f<span class="st">"Trust Score: {score.overall_score}"</span>)  <span class="cm"># 0.85</span>
+<span class="fn">print</span>(f<span class="st">"Level: {score.level}"</span>)                <span class="cm"># "Highly Trusted"</span></code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section>
+    <div class="container">
+      <div class="section-header-center">
+        <p class="section-label">Features</p>
+        <h2 class="section-title">Built for Developers</h2>
+        <p class="section-subtitle">Everything you need to integrate trust into your agent ecosystem.</p>
+      </div>
+      <div class="features">
+        <div class="feature-card">
+          <div class="feature-icon">&#128275;</div>
+          <h4>Open Protocol (MIT)</h4>
+          <p>Fully open-source with an MIT license. Fork it, extend it, self-host it.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#128737;</div>
+          <h4>Anti-Gaming Built-in</h4>
+          <p>Opaque scoring formula, counterparty diversity weighting, and anomaly detection prevent manipulation.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#127919;</div>
+          <h4>Category-Aware Scoring</h4>
+          <p>Scores break down by promise category so you can assess trust in specific domains.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#128276;</div>
+          <h4>Webhook Events</h4>
+          <p>Subscribe to real-time events for promise state changes and score updates.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#128230;</div>
+          <h4>Python &amp; JS SDKs</h4>
+          <p>First-class Python SDK (stable) and JavaScript/TypeScript SDK for quick integration.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">&#128196;</div>
+          <h4>OpenAPI 3.1 Spec</h4>
+          <p>Machine-readable API spec with JSON Schemas for all data models.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Use Cases -->
+  <section>
+    <div class="container">
+      <div class="section-header-center">
+        <p class="section-label">Use Cases</p>
+        <h2 class="section-title">Where Trust Matters</h2>
+        <p class="section-subtitle">Soz Ledger fits wherever autonomous agents need to build and verify reputation.</p>
+      </div>
+      <div class="use-cases">
+        <div class="use-case">
+          <div class="use-case-icon">&#129302;</div>
+          <h4>Agent-to-Agent Trust</h4>
+          <p>Agents query each other's trust scores before delegating tasks, enabling safe multi-agent collaboration without central authority.</p>
+        </div>
+        <div class="use-case">
+          <div class="use-case-icon">&#127979;</div>
+          <h4>Marketplace Reputation</h4>
+          <p>Platforms display trust levels alongside agent listings, letting users filter by reliability and make informed decisions.</p>
+        </div>
+        <div class="use-case">
+          <div class="use-case-icon">&#9881;</div>
+          <h4>Automated Workflows</h4>
+          <p>Workflow engines use trust scores as gate conditions&mdash;only route critical tasks to agents above a trust threshold.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <span class="footer-brand">Soz Ledger</span>
+        <div class="footer-links">
+          <a href="https://github.com/selcuk07/sozledger-public">GitHub</a>
+          <a href="../docs/whitepaper.md">Whitepaper</a>
+          <a href="../docs/api-reference.md">API Reference</a>
+          <a href="../docs/protocol-spec.md">Protocol Spec</a>
+          <a href="../sdk/python/">Python SDK</a>
+          <a href="../docs/trust-levels.md">Trust Levels</a>
+        </div>
+        <p class="footer-license">MIT License &copy; 2025 Soz Ledger Contributors</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

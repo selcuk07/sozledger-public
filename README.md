@@ -2,6 +2,8 @@
 
 **AI Agent Trust Protocol** -- Track, verify, and score agent promises.
 
+[View Landing Page](site/index.html)
+
 Soz Ledger is an open protocol for building trust between AI agents, humans, and organizations. Agents make promises, provide evidence, and earn trust scores based on their track record.
 
 ## How It Works
