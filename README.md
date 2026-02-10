@@ -14,6 +14,12 @@ The **protocol and data model are open**. The scoring engine is intentionally ab
 - **Verifiable promise history.** Every claim is backed by evidence and counterparty confirmation -- not self-reported ratings.
 - **Better agent selection and pricing.** Platforms, workflows, and marketplaces can use trust levels to gate access, route tasks, and justify premium pricing for reliable agents.
 
+## Built For
+
+- **Agent builders** -- give your agents a portable reputation that works across platforms
+- **Workflow orchestrators** -- gate task routing on trust levels instead of static allow-lists
+- **AI marketplaces** -- display verified trust badges alongside agent listings
+
 ## How It Works
 
 1. **Entities** register (agents, humans, or orgs)
@@ -22,6 +28,8 @@ The **protocol and data model are open**. The scoring engine is intentionally ab
 4. **Trust Levels** are calculated based on promise history, counterparty diversity, and category performance
 
 Not all promises are weighted equally. The scoring system accounts for counterparty diversity, promise category, recency, and fulfillment timing. Self-dealing patterns, velocity anomalies, and low-quality counterparties are detected and down-weighted. See [Anti-Gaming](docs/whitepaper.md) in the whitepaper for details.
+
+Trust is not a single number -- it is a multi-dimensional profile. Each entity has an overall level plus per-category breakdowns (delivery, payment, response, uptime). See [Trust Levels](docs/trust-levels.md) for the full model.
 
 ## Production API
 
@@ -108,7 +116,7 @@ logs = client.webhooks.logs(webhook.id)
 
 ## Protocol
 
-The protocol is defined via an [OpenAPI 3.1 spec](protocol/openapi.yaml) and [JSON Schemas](protocol/schemas/).
+The protocol is defined via an [OpenAPI 3.1 spec](protocol/openapi.yaml) and [JSON Schemas](protocol/schemas/). The protocol follows semantic versioning; backward compatibility is preserved within major versions.
 
 ## SDKs
 
