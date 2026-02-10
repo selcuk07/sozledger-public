@@ -110,6 +110,59 @@ export interface ScoreHistoryResponse {
   }>;
 }
 
+// ── Webhook types ───────────────────────────────────────────────────────────
+
+/** Event types that can trigger webhook deliveries. */
+export type WebhookEventType =
+  | "promise.created"
+  | "promise.fulfilled"
+  | "promise.broken"
+  | "evidence.submitted"
+  | "score.updated"
+  | "entity.created";
+
+/** A registered webhook endpoint (secret excluded). */
+export interface Webhook {
+  id: string;
+  entity_id: string;
+  url: string;
+  event_types: WebhookEventType[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/** Webhook with secret — returned only on creation. */
+export interface WebhookWithSecret extends Webhook {
+  secret: string;
+}
+
+export interface CreateWebhookOptions {
+  url: string;
+  event_types: WebhookEventType[];
+}
+
+export interface UpdateWebhookOptions {
+  url?: string;
+  event_types?: WebhookEventType[];
+  is_active?: boolean;
+}
+
+/** A delivery attempt log for a webhook. */
+export interface DeliveryLog {
+  id: string;
+  webhook_id: string;
+  event_id: string;
+  event_type: string;
+  attempt_number: number;
+  status_code: number | null;
+  response_body: string | null;
+  success: boolean;
+  error_message: string | null;
+  next_retry_at: string | null;
+  created_at: string;
+}
+
 // ── Error types ─────────────────────────────────────────────────────────────
 
 export interface ApiErrorBody {

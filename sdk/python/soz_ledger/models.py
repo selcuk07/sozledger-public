@@ -76,3 +76,34 @@ class ScoreHistoryEntry:
 class ScoreHistoryResponse:
     entity_id: str
     history: list[ScoreHistoryEntry] = field(default_factory=list)
+
+
+@dataclass
+class Webhook:
+    id: str
+    entity_id: str
+    url: str
+    event_types: list[str] = field(default_factory=list)
+    is_active: bool = True
+    created_at: str = ""
+    updated_at: str = ""
+
+
+@dataclass
+class WebhookWithSecret(Webhook):
+    secret: str = ""
+
+
+@dataclass
+class DeliveryLog:
+    id: str
+    webhook_id: str
+    event_id: str
+    event_type: str
+    attempt_number: int = 1
+    status_code: int | None = None
+    response_body: str | None = None
+    success: bool = False
+    error_message: str | None = None
+    next_retry_at: str | None = None
+    created_at: str = ""

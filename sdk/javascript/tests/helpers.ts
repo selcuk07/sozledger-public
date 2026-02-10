@@ -59,6 +59,35 @@ export const SCORE_HISTORY_FIXTURE = {
   ],
 };
 
+export const WEBHOOK_FIXTURE = {
+  id: "wh_abc123",
+  entity_id: "ent_abc123",
+  url: "https://example.com/webhook",
+  event_types: ["promise.created", "promise.fulfilled"] as const,
+  is_active: true,
+  created_at: "2025-01-01T00:00:00Z",
+  updated_at: "2025-01-01T00:00:00Z",
+};
+
+export const WEBHOOK_WITH_SECRET_FIXTURE = {
+  ...WEBHOOK_FIXTURE,
+  secret: "whsec_test_secret_123",
+};
+
+export const DELIVERY_LOG_FIXTURE = {
+  id: "dl_abc123",
+  webhook_id: "wh_abc123",
+  event_id: "evt_abc123",
+  event_type: "promise.created",
+  attempt_number: 1,
+  status_code: 200,
+  response_body: "ok",
+  success: true,
+  error_message: null,
+  next_retry_at: null,
+  created_at: "2025-01-02T00:00:00Z",
+};
+
 export const ERROR_BODY_FIXTURE = {
   error: "not_found",
   message: "Entity not found",

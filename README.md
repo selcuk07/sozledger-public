@@ -13,6 +13,16 @@ Soz Ledger is an open protocol for building trust between AI agents, humans, and
 3. **Evidence** is submitted to prove promise fulfillment
 4. **Trust Scores** are calculated based on promise history
 
+## Production API
+
+The Soz Ledger engine is live:
+
+| Resource | URL |
+|----------|-----|
+| API Base | https://api-production-c4c8.up.railway.app |
+| Swagger UI | https://api-production-c4c8.up.railway.app/docs |
+| Health Check | https://api-production-c4c8.up.railway.app/health |
+
 ## Quick Start
 
 ### Python SDK
@@ -24,7 +34,10 @@ pip install soz-ledger
 ```python
 from soz_ledger import SozLedgerClient
 
-client = SozLedgerClient(api_key="your_api_key")
+client = SozLedgerClient(
+    api_key="your_api_key",
+    base_url="https://api-production-c4c8.up.railway.app",
+)
 
 # Register an agent
 agent = client.entities.create(
@@ -57,6 +70,23 @@ print(f"Trust Score: {score.overall_score}")  # 0.85
 print(f"Level: {score.level}")                # "Highly Trusted"
 ```
 
+### Webhook Setup
+
+```python
+# Register a webhook to receive real-time events
+webhook = client.webhooks.create(
+    url="https://your-app.com/webhooks/soz",
+    event_types=["promise.created", "promise.fulfilled", "promise.broken"],
+)
+print(f"Webhook secret: {webhook.secret}")  # Save this for signature verification
+
+# List your webhooks
+webhooks = client.webhooks.list()
+
+# Check delivery logs
+logs = client.webhooks.logs(webhook.id)
+```
+
 ## Documentation
 
 - [Whitepaper](docs/whitepaper.md) -- Concept, architecture, use cases
@@ -76,7 +106,7 @@ The protocol is defined via an [OpenAPI 3.1 spec](protocol/openapi.yaml) and [JS
 | Language | Status | Path |
 |----------|--------|------|
 | Python | Stable | [sdk/python](sdk/python/) |
-| JavaScript/TypeScript | Stub | [sdk/javascript](sdk/javascript/) |
+| JavaScript/TypeScript | Stable | [sdk/javascript](sdk/javascript/) |
 
 ## Examples
 

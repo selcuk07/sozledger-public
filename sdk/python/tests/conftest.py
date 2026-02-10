@@ -66,6 +66,35 @@ SCORE_HISTORY_DATA = {
     ],
 }
 
+WEBHOOK_DATA = {
+    "id": "wh_abc123",
+    "entity_id": "ent_abc123",
+    "url": "https://example.com/webhook",
+    "event_types": ["promise.created", "promise.fulfilled"],
+    "is_active": True,
+    "created_at": "2025-01-01T00:00:00Z",
+    "updated_at": "2025-01-01T00:00:00Z",
+}
+
+WEBHOOK_WITH_SECRET_DATA = {
+    **WEBHOOK_DATA,
+    "secret": "whsec_test_secret_123",
+}
+
+DELIVERY_LOG_DATA = {
+    "id": "dl_abc123",
+    "webhook_id": "wh_abc123",
+    "event_id": "evt_abc123",
+    "event_type": "promise.created",
+    "attempt_number": 1,
+    "status_code": 200,
+    "response_body": "ok",
+    "success": True,
+    "error_message": None,
+    "next_retry_at": None,
+    "created_at": "2025-01-02T00:00:00Z",
+}
+
 ERROR_BODY = {
     "error": "not_found",
     "message": "Entity not found",

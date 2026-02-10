@@ -4,12 +4,15 @@ import httpx
 
 from soz_ledger.errors import SozLedgerError
 from soz_ledger.models import (
+    DeliveryLog,
     Entity,
     Evidence,
     Promise,
     ScoreHistoryEntry,
     ScoreHistoryResponse,
     TrustScore,
+    Webhook,
+    WebhookWithSecret,
     _from_dict,
 )
 
@@ -131,6 +134,52 @@ class _ScoresAPI:
         return ScoreHistoryResponse(entity_id=resp["entity_id"], history=entries)
 
 
+class _WebhooksAPI:
+    def __init__(self, client: SozLedgerClient) -> None:
+        self._client = client
+
+    def create(
+        self,
+        url: str,
+        event_types: list[str],
+    ) -> WebhookWithSecret:
+        data: dict = {"url": url, "event_types": event_types}
+        resp = self._client._post("/v1/webhooks", json=data)
+        return _from_dict(WebhookWithSecret, resp)
+
+    def list(self) -> list[Webhook]:
+        resp = self._client._get("/v1/webhooks")
+        return [_from_dict(Webhook, w) for w in resp]
+
+    def get(self, webhook_id: str) -> Webhook:
+        resp = self._client._get(f"/v1/webhooks/{webhook_id}")
+        return _from_dict(Webhook, resp)
+
+    def update(
+        self,
+        webhook_id: str,
+        url: str | None = None,
+        event_types: list[str] | None = None,
+        is_active: bool | None = None,
+    ) -> Webhook:
+        data: dict = {}
+        if url is not None:
+            data["url"] = url
+        if event_types is not None:
+            data["event_types"] = event_types
+        if is_active is not None:
+            data["is_active"] = is_active
+        resp = self._client._patch(f"/v1/webhooks/{webhook_id}", json=data)
+        return _from_dict(Webhook, resp)
+
+    def delete(self, webhook_id: str) -> None:
+        self._client._delete(f"/v1/webhooks/{webhook_id}")
+
+    def logs(self, webhook_id: str) -> list[DeliveryLog]:
+        resp = self._client._get(f"/v1/webhooks/{webhook_id}/logs")
+        return [_from_dict(DeliveryLog, log) for log in resp]
+
+
 class SozLedgerClient:
     """Soz Ledger SDK client for the AI Agent Trust Protocol.
 
@@ -163,6 +212,7 @@ class SozLedgerClient:
         self.promises = _PromisesAPI(self)
         self.evidence = _EvidenceAPI(self)
         self.scores = _ScoresAPI(self)
+        self.webhooks = _WebhooksAPI(self)
 
     # ── Internal HTTP helpers ────────────────────────────────────────────
 
@@ -192,6 +242,22 @@ class SozLedgerClient:
 
     def _patch(self, path: str, json: dict) -> dict:
         return self._request("PATCH", path, json=json)
+
+    def _delete(self, path: str) -> None:
+        try:
+            resp = self._http.request("DELETE", path)
+        except httpx.TimeoutException as exc:
+            raise SozLedgerError(0, {"error": "timeout", "message": str(exc)}) from exc
+        except httpx.HTTPError as exc:
+            raise SozLedgerError(0, {"error": "network_error", "message": str(exc)}) from exc
+
+        if not resp.is_success:
+            body: dict | None = None
+            try:
+                body = resp.json()
+            except Exception:
+                pass
+            raise SozLedgerError(resp.status_code, body)
 
     def close(self) -> None:
         self._http.close()

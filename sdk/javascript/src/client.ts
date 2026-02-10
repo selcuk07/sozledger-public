@@ -2,12 +2,17 @@ import type {
   ApiErrorBody,
   CreateEntityOptions,
   CreatePromiseOptions,
+  CreateWebhookOptions,
+  DeliveryLog,
   Entity,
   Evidence,
   Promise as SozPromise,
   ScoreHistoryResponse,
   SubmitEvidenceOptions,
   TrustScore,
+  UpdateWebhookOptions,
+  Webhook,
+  WebhookWithSecret,
 } from "./types";
 import { SozLedgerError } from "./errors";
 
@@ -103,6 +108,40 @@ class ScoresAPI {
   }
 }
 
+class WebhooksAPI {
+  constructor(private client: SozLedgerClient) {}
+
+  /** Register a new webhook endpoint. Returns the webhook with its secret. */
+  async create(options: CreateWebhookOptions): Promise<WebhookWithSecret> {
+    return this.client._post<WebhookWithSecret>("/v1/webhooks", options);
+  }
+
+  /** List all webhooks for the authenticated entity. */
+  async list(): Promise<Webhook[]> {
+    return this.client._get<Webhook[]>("/v1/webhooks");
+  }
+
+  /** Retrieve a webhook by ID. */
+  async get(webhookId: string): Promise<Webhook> {
+    return this.client._get<Webhook>(`/v1/webhooks/${webhookId}`);
+  }
+
+  /** Update a webhook's URL, event types, or active status. */
+  async update(webhookId: string, options: UpdateWebhookOptions): Promise<Webhook> {
+    return this.client._patch<Webhook>(`/v1/webhooks/${webhookId}`, options);
+  }
+
+  /** Delete a webhook. */
+  async delete(webhookId: string): Promise<void> {
+    return this.client._delete(`/v1/webhooks/${webhookId}`);
+  }
+
+  /** Get delivery logs for a webhook. */
+  async logs(webhookId: string): Promise<DeliveryLog[]> {
+    return this.client._get<DeliveryLog[]>(`/v1/webhooks/${webhookId}/logs`);
+  }
+}
+
 // ── Main client ─────────────────────────────────────────────────────────────
 
 /**
@@ -126,6 +165,8 @@ export class SozLedgerClient {
   public readonly evidence: EvidenceAPI;
   /** Sub-API for trust-score operations. */
   public readonly scores: ScoresAPI;
+  /** Sub-API for webhook operations. */
+  public readonly webhooks: WebhooksAPI;
 
   constructor(
     apiKey: string,
@@ -140,6 +181,7 @@ export class SozLedgerClient {
     this.promises = new PromisesAPI(this);
     this.evidence = new EvidenceAPI(this);
     this.scores = new ScoresAPI(this);
+    this.webhooks = new WebhooksAPI(this);
   }
 
   // ── Internal HTTP helpers ───────────────────────────────────────────────
@@ -209,5 +251,50 @@ export class SozLedgerClient {
   /** @internal */
   async _patch<T>(path: string, body: unknown): Promise<T> {
     return this._request<T>("PATCH", path, body);
+  }
+
+  /** @internal */
+  async _delete(path: string): Promise<void> {
+    const url = `${this.baseUrl}${path}`;
+
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${this.apiKey}`,
+    };
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), this.timeout);
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: "DELETE",
+        headers,
+        signal: controller.signal,
+      });
+    } catch (err: unknown) {
+      clearTimeout(timer);
+      if (err instanceof Error && err.name === "AbortError") {
+        throw new SozLedgerError(0, {
+          error: "timeout",
+          message: `Request timed out after ${this.timeout}ms`,
+        });
+      }
+      throw new SozLedgerError(0, {
+        error: "network_error",
+        message: err instanceof Error ? err.message : "Unknown network error",
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+
+    if (!response.ok) {
+      let errorBody: ApiErrorBody | undefined;
+      try {
+        errorBody = (await response.json()) as ApiErrorBody;
+      } catch {
+        // response body wasn't valid JSON — leave errorBody undefined
+      }
+      throw new SozLedgerError(response.status, errorBody);
+    }
   }
 }

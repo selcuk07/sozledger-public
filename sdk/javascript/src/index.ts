@@ -5,6 +5,8 @@ export type {
   ApiErrorBody,
   CreateEntityOptions,
   CreatePromiseOptions,
+  CreateWebhookOptions,
+  DeliveryLog,
   Entity,
   EntityType,
   Evidence,
@@ -15,4 +17,8 @@ export type {
   ScoreHistoryResponse,
   SubmitEvidenceOptions,
   TrustScore,
+  UpdateWebhookOptions,
+  Webhook,
+  WebhookEventType,
+  WebhookWithSecret,
 } from "./types";
