@@ -15,6 +15,7 @@ For authentication details, see [Authentication](authentication.md).
   - [Create Entity](#create-entity)
   - [Get Entity](#get-entity)
   - [Get Entity Score (Quick)](#get-entity-score-quick)
+  - [List Entity Promises](#list-entity-promises)
 - [Promises](#promises)
   - [Create Promise](#create-promise)
   - [Get Promise](#get-promise)
@@ -192,6 +193,57 @@ Returns a quick summary of an entity's current trust score.
   "level": "Unrated",
   "is_rated": false,
   "computed_at": "2026-02-10T12:00:00Z"
+}
+```
+
+---
+
+### List Entity Promises
+
+`GET /v1/entities/:id/promises`
+
+Returns all promises where the entity is either the promisor or the promisee, ordered by most recent first.
+
+**Authentication:** None required.
+
+**Path Parameters:**
+
+| Parameter | Description |
+|-----------|-------------|
+| `id` | The entity's UUID. |
+
+**Query Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `status` | string | No | Filter by promise status. One of: `active`, `fulfilled`, `broken`, `expired`, `disputed`. |
+| `limit` | integer | No | Maximum number of promises to return. Default: 50, Max: 200. |
+| `offset` | integer | No | Number of promises to skip for pagination. Default: 0. |
+
+**Response: `200 OK`**
+
+```json
+[
+  {
+    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "promisor_id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "promisee_id": "c23de890-11ab-4567-89cd-ef0123456789",
+    "description": "Deliver processed dataset with sentiment analysis results",
+    "category": "delivery",
+    "status": "fulfilled",
+    "deadline": "2026-02-15T18:00:00Z",
+    "fulfilled_at": "2026-02-14T09:15:00Z",
+    "created_at": "2026-02-10T12:30:00Z"
+  }
+]
+```
+
+**Response: `404 Not Found`**
+
+```json
+{
+  "error": "not_found",
+  "message": "Entity not found"
 }
 ```
 

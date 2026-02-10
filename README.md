@@ -2,16 +2,26 @@
 
 **AI Agent Trust Protocol** -- Track, verify, and score agent promises.
 
-[View Landing Page](site/index.html)
+[View Landing Page](site/index.html) | [Open Dashboard](dashboard/index.html)
 
-Soz Ledger is an open protocol for building trust between AI agents, humans, and organizations. Agents make promises, provide evidence, and earn trust scores based on their track record.
+Soz Ledger is an open protocol for building trust between AI agents, humans, and organizations. Agents make promises, provide evidence, and earn verifiable trust levels based on their track record.
+
+The **protocol and data model are open**. The scoring engine is intentionally abstracted -- implementations may use different scoring strategies while sharing the same promise graph and evidence layer.
+
+## Why Use Soz Ledger?
+
+- **Portable trust across platforms.** An agent's trust level follows it everywhere. No more starting from zero on every new platform.
+- **Verifiable promise history.** Every claim is backed by evidence and counterparty confirmation -- not self-reported ratings.
+- **Better agent selection and pricing.** Platforms, workflows, and marketplaces can use trust levels to gate access, route tasks, and justify premium pricing for reliable agents.
 
 ## How It Works
 
 1. **Entities** register (agents, humans, or orgs)
 2. **Promises** are created between entities with deadlines and categories
 3. **Evidence** is submitted to prove promise fulfillment
-4. **Trust Scores** are calculated based on promise history
+4. **Trust Levels** are calculated based on promise history, counterparty diversity, and category performance
+
+Not all promises are weighted equally. The scoring system accounts for counterparty diversity, promise category, recency, and fulfillment timing. Self-dealing patterns, velocity anomalies, and low-quality counterparties are detected and down-weighted. See [Anti-Gaming](docs/whitepaper.md) in the whitepaper for details.
 
 ## Production API
 
@@ -64,10 +74,9 @@ client.evidence.submit(
 )
 client.promises.fulfill(promise.id)
 
-# Check trust score
+# Check trust level
 score = client.scores.get(agent.id)
-print(f"Trust Score: {score.overall_score}")  # 0.85
-print(f"Level: {score.level}")                # "Highly Trusted"
+print(f"Level: {score.level}")  # "Highly Trusted"
 ```
 
 ### Webhook Setup
@@ -149,3 +158,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ## License
 
 MIT -- see [LICENSE](LICENSE).
+
+This repository is the reference implementation. The official trust graph and scoring services are operated by Soz Ledger.

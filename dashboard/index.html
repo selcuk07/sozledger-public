@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Soz Ledger Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- Login View -->
+  <div id="login-view" class="view">
+    <div class="login-container">
+      <div class="login-brand">
+        <h1>Soz Ledger</h1>
+        <p class="login-tagline">AI Agent Trust Protocol</p>
+      </div>
+      <form id="login-form" class="login-form">
+        <div class="form-group">
+          <label for="base-url">API Base URL</label>
+          <input type="url" id="base-url" value="https://api-production-c4c8.up.railway.app" placeholder="https://api-production-c4c8.up.railway.app">
+        </div>
+        <div class="form-group">
+          <label for="api-key">API Key</label>
+          <input type="password" id="api-key" placeholder="sk_live_..." required>
+        </div>
+        <div class="form-group">
+          <label for="entity-id">Entity ID</label>
+          <input type="text" id="entity-id" placeholder="f47ac10b-58cc-4372-a567-0e02b2c3d479" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Connect</button>
+        <div id="login-error" class="error-message" hidden></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Dashboard View -->
+  <div id="dashboard-view" class="view" hidden>
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-inner">
+        <div class="header-brand">
+          <span class="header-logo">Soz Ledger</span>
+          <span class="header-entity-name" id="header-entity-name"></span>
+        </div>
+        <div class="header-actions">
+          <button id="refresh-btn" class="btn btn-secondary btn-sm">Refresh</button>
+          <button id="logout-btn" class="btn btn-secondary btn-sm">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="dashboard-main">
+      <!-- Loading overlay -->
+      <div id="loading-overlay" class="loading-overlay" hidden>
+        <div class="spinner"></div>
+        <p>Loading dashboard...</p>
+      </div>
+
+      <!-- Trust Score Card -->
+      <section class="score-section">
+        <div class="score-card" id="score-card">
+          <div class="score-ring">
+            <svg viewBox="0 0 120 120" class="score-svg">
+              <circle cx="60" cy="60" r="52" class="score-ring-bg"/>
+              <circle cx="60" cy="60" r="52" class="score-ring-fill" id="score-ring-fill"/>
+            </svg>
+            <div class="score-value" id="score-value">--</div>
+          </div>
+          <div class="score-info">
+            <span class="level-badge" id="level-badge">Unrated</span>
+            <p class="score-subtitle" id="score-subtitle">Connect to view trust score</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stats Row -->
+      <section class="stats-row" id="stats-row">
+        <div class="stat-card">
+          <div class="stat-value" id="stat-total">0</div>
+          <div class="stat-label">Total Promises</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value stat-fulfilled" id="stat-fulfilled">0</div>
+          <div class="stat-label">Fulfilled</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value stat-broken" id="stat-broken">0</div>
+          <div class="stat-label">Broken</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value stat-streak" id="stat-streak">0</div>
+          <div class="stat-label">Streak</div>
+        </div>
+      </section>
+
+      <!-- Charts Row -->
+      <section class="charts-row">
+        <div class="chart-card">
+          <h3>Score History</h3>
+          <div class="chart-container">
+            <canvas id="history-chart"></canvas>
+          </div>
+          <p class="empty-state" id="history-empty" hidden>No score history yet.</p>
+        </div>
+        <div class="chart-card">
+          <h3>Category Scores</h3>
+          <div id="category-scores" class="category-bars"></div>
+          <p class="empty-state" id="category-empty" hidden>No category scores yet.</p>
+        </div>
+      </section>
+
+      <!-- Promises Table -->
+      <section class="promises-section">
+        <div class="section-header">
+          <h3>Promises</h3>
+          <div class="promise-filters">
+            <select id="promise-status-filter">
+              <option value="">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="fulfilled">Fulfilled</option>
+              <option value="broken">Broken</option>
+              <option value="disputed">Disputed</option>
+              <option value="expired">Expired</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="promises-table" id="promises-table">
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Counterparty</th>
+                <th>Created</th>
+                <th>Deadline</th>
+              </tr>
+            </thead>
+            <tbody id="promises-tbody">
+            </tbody>
+          </table>
+          <p class="empty-state" id="promises-empty" hidden>No promises found.</p>
+        </div>
+      </section>
+
+      <!-- Promise Detail Panel -->
+      <div id="promise-detail" class="detail-panel" hidden>
+        <div class="detail-panel-inner">
+          <div class="detail-header">
+            <h3>Promise Details</h3>
+            <button class="detail-close" id="detail-close">&times;</button>
+          </div>
+          <div class="detail-body" id="detail-body"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
