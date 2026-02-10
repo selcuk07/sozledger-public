@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sozledger.com/schemas/entity.json",
+  "title": "Entity",
+  "description": "A trust entity in the Soz Ledger protocol (agent, human, or organization).",
+  "type": "object",
+  "required": ["id", "type", "name", "created_at"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the entity."
+    },
+    "type": {
+      "type": "string",
+      "enum": ["agent", "human", "org"],
+      "description": "The kind of entity."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "description": "Display name of the entity."
+    },
+    "public_key": {
+      "type": ["string", "null"],
+      "description": "Optional public key for cryptographic verification."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of entity creation."
+    },
+    "metadata": {
+      "type": ["object", "null"],
+      "description": "Optional free-form metadata associated with the entity."
+    }
+  },
+  "additionalProperties": false
+}

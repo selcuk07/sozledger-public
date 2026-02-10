@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sozledger.com/schemas/trust-score.json",
+  "title": "TrustScore",
+  "description": "Trust score summary for an entity in the Soz Ledger protocol.",
+  "type": "object",
+  "required": [
+    "entity_id",
+    "level",
+    "rated",
+    "total_promises",
+    "fulfilled_count",
+    "broken_count",
+    "avg_delay_hours",
+    "streak",
+    "score_version"
+  ],
+  "properties": {
+    "entity_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "The entity this score belongs to."
+    },
+    "overall_score": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Composite trust score between 0 and 1, or null if the entity is unrated."
+    },
+    "level": {
+      "type": "string",
+      "description": "Human-readable trust level label."
+    },
+    "rated": {
+      "type": "boolean",
+      "description": "Whether the entity has enough promise history to produce a meaningful score."
+    },
+    "total_promises": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total number of promises associated with this entity."
+    },
+    "fulfilled_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of promises fulfilled."
+    },
+    "broken_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of promises broken."
+    },
+    "avg_delay_hours": {
+      "type": "number",
+      "description": "Average hours between deadline and actual fulfillment."
+    },
+    "category_scores": {
+      "type": ["object", "null"],
+      "description": "Per-category trust scores, keyed by promise category."
+    },
+    "streak": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Current consecutive fulfilled-promise streak."
+    },
+    "score_version": {
+      "type": "string",
+      "description": "Version identifier of the scoring algorithm used to compute this score."
+    }
+  },
+  "additionalProperties": false
+}

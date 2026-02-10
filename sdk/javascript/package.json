@@ -1,0 +1,25 @@
+{
+  "name": "soz-ledger",
+  "version": "0.1.0",
+  "description": "JavaScript/TypeScript SDK for the Soz Ledger AI Agent Trust Protocol",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "soz-ledger",
+    "trust",
+    "ai-agent",
+    "accountability",
+    "protocol"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

@@ -1,0 +1,596 @@
+openapi: 3.1.0
+info:
+  title: Soz Ledger API
+  version: 0.1.0
+  description: AI Agent Trust Protocol
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /:
+    get:
+      operationId: root
+      summary: API root
+      description: Returns basic API information.
+      security: []
+      responses:
+        "200":
+          description: API info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  version:
+                    type: string
+                  protocol:
+                    type: string
+
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Health check
+      description: Returns the health status of the API.
+      security: []
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+
+  /v1/entities:
+    post:
+      operationId: createEntity
+      summary: Create a new entity
+      description: Register an agent, human, or organization as a trust entity.
+      tags:
+        - Entities
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EntityCreate"
+      responses:
+        "201":
+          description: Entity created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntityResponse"
+        "400":
+          description: Invalid request body
+        "401":
+          description: Unauthorized
+
+  /v1/entities/{entity_id}:
+    get:
+      operationId: getEntity
+      summary: Get entity by ID
+      description: Retrieve details of a registered entity.
+      tags:
+        - Entities
+      parameters:
+        - name: entity_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Entity details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntityResponse"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Entity not found
+
+  /v1/entities/{entity_id}/score:
+    get:
+      operationId: getEntityScore
+      summary: Get entity trust score
+      description: Retrieve the current trust score for an entity.
+      tags:
+        - Entities
+      parameters:
+        - name: entity_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Trust score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrustScoreResponse"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Entity not found
+
+  /v1/promises:
+    post:
+      operationId: createPromise
+      summary: Create a new promise
+      description: Record a promise between two entities.
+      tags:
+        - Promises
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PromiseCreate"
+      responses:
+        "201":
+          description: Promise created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromiseResponse"
+        "400":
+          description: Invalid request body
+        "401":
+          description: Unauthorized
+
+  /v1/promises/{promise_id}:
+    get:
+      operationId: getPromise
+      summary: Get promise by ID
+      description: Retrieve details of a recorded promise.
+      tags:
+        - Promises
+      parameters:
+        - name: promise_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Promise details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromiseResponse"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Promise not found
+
+  /v1/promises/{promise_id}/status:
+    patch:
+      operationId: updatePromiseStatus
+      summary: Update promise status
+      description: Transition a promise to a new status.
+      tags:
+        - Promises
+      parameters:
+        - name: promise_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PromiseStatusUpdate"
+      responses:
+        "200":
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromiseResponse"
+        "400":
+          description: Invalid status transition
+        "401":
+          description: Unauthorized
+        "404":
+          description: Promise not found
+
+  /v1/promises/{promise_id}/evidence:
+    post:
+      operationId: submitEvidence
+      summary: Submit evidence for a promise
+      description: Attach evidence to a promise for verification.
+      tags:
+        - Evidence
+      parameters:
+        - name: promise_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EvidenceCreate"
+      responses:
+        "201":
+          description: Evidence submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvidenceResponse"
+        "400":
+          description: Invalid request body
+        "401":
+          description: Unauthorized
+        "404":
+          description: Promise not found
+    get:
+      operationId: listEvidence
+      summary: List evidence for a promise
+      description: Retrieve all evidence attached to a promise.
+      tags:
+        - Evidence
+      parameters:
+        - name: promise_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of evidence
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EvidenceResponse"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Promise not found
+
+  /v1/scores/{entity_id}:
+    get:
+      operationId: getScore
+      summary: Get trust score
+      description: Retrieve the current trust score for an entity.
+      tags:
+        - Scores
+      parameters:
+        - name: entity_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Trust score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrustScoreResponse"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Entity not found
+
+  /v1/scores/{entity_id}/history:
+    get:
+      operationId: getScoreHistory
+      summary: Get trust score history
+      description: Retrieve the historical trust scores for an entity.
+      tags:
+        - Scores
+      parameters:
+        - name: entity_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Score history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TrustScoreResponse"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Entity not found
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: API key passed as a Bearer token in the Authorization header.
+
+  schemas:
+    EntityType:
+      type: string
+      enum:
+        - agent
+        - human
+        - org
+
+    PromiseCategory:
+      type: string
+      enum:
+        - delivery
+        - payment
+        - response
+        - uptime
+        - custom
+
+    PromiseStatus:
+      type: string
+      enum:
+        - active
+        - fulfilled
+        - broken
+        - expired
+        - disputed
+
+    EvidenceType:
+      type: string
+      enum:
+        - api_callback
+        - webhook
+        - manual
+        - file
+        - link
+
+    EntityCreate:
+      type: object
+      required:
+        - type
+        - name
+      properties:
+        type:
+          $ref: "#/components/schemas/EntityType"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 256
+        public_key:
+          type:
+            - string
+            - "null"
+        metadata:
+          type:
+            - object
+            - "null"
+
+    EntityResponse:
+      type: object
+      required:
+        - id
+        - type
+        - name
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          $ref: "#/components/schemas/EntityType"
+        name:
+          type: string
+        public_key:
+          type:
+            - string
+            - "null"
+        created_at:
+          type: string
+          format: date-time
+        metadata:
+          type:
+            - object
+            - "null"
+
+    PromiseCreate:
+      type: object
+      required:
+        - promisor_id
+        - promisee_id
+        - description
+        - category
+      properties:
+        promisor_id:
+          type: string
+          format: uuid
+        promisee_id:
+          type: string
+          format: uuid
+        description:
+          type: string
+          minLength: 1
+          maxLength: 1024
+        deadline:
+          type:
+            - string
+            - "null"
+          format: date-time
+        category:
+          $ref: "#/components/schemas/PromiseCategory"
+
+    PromiseResponse:
+      type: object
+      required:
+        - id
+        - promisor_id
+        - promisee_id
+        - description
+        - category
+        - status
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        promisor_id:
+          type: string
+          format: uuid
+        promisee_id:
+          type: string
+          format: uuid
+        description:
+          type: string
+        deadline:
+          type:
+            - string
+            - "null"
+          format: date-time
+        category:
+          $ref: "#/components/schemas/PromiseCategory"
+        status:
+          $ref: "#/components/schemas/PromiseStatus"
+        created_at:
+          type: string
+          format: date-time
+        fulfilled_at:
+          type:
+            - string
+            - "null"
+          format: date-time
+
+    PromiseStatusUpdate:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          $ref: "#/components/schemas/PromiseStatus"
+
+    EvidenceCreate:
+      type: object
+      required:
+        - type
+        - submitted_by
+      properties:
+        type:
+          $ref: "#/components/schemas/EvidenceType"
+        payload:
+          type:
+            - object
+            - "null"
+        submitted_by:
+          type: string
+          format: uuid
+
+    EvidenceResponse:
+      type: object
+      required:
+        - id
+        - promise_id
+        - type
+        - submitted_by
+        - verified
+        - created_at
+        - hash
+      properties:
+        id:
+          type: string
+          format: uuid
+        promise_id:
+          type: string
+          format: uuid
+        type:
+          $ref: "#/components/schemas/EvidenceType"
+        payload:
+          type:
+            - object
+            - "null"
+        submitted_by:
+          type: string
+          format: uuid
+        verified:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        hash:
+          type: string
+          description: SHA-256 hash of the evidence payload.
+
+    TrustScoreResponse:
+      type: object
+      required:
+        - entity_id
+        - level
+        - rated
+        - total_promises
+        - fulfilled_count
+        - broken_count
+        - avg_delay_hours
+        - streak
+        - score_version
+      properties:
+        entity_id:
+          type: string
+          format: uuid
+        overall_score:
+          type:
+            - number
+            - "null"
+          minimum: 0
+          maximum: 1
+          description: Composite trust score between 0 and 1, or null if unrated.
+        level:
+          type: string
+          description: Human-readable trust level label.
+        rated:
+          type: boolean
+          description: Whether the entity has enough history to be rated.
+        total_promises:
+          type: integer
+        fulfilled_count:
+          type: integer
+        broken_count:
+          type: integer
+        avg_delay_hours:
+          type: number
+          description: Average hours between deadline and fulfillment.
+        category_scores:
+          type:
+            - object
+            - "null"
+          description: Per-category trust scores.
+        streak:
+          type: integer
+          description: Current consecutive fulfilled-promise streak.
+        score_version:
+          type: string
+          description: Version identifier of the scoring algorithm.

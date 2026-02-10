@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sozledger.com/schemas/promise.json",
+  "title": "Promise",
+  "description": "A recorded promise between two entities in the Soz Ledger protocol.",
+  "type": "object",
+  "required": [
+    "id",
+    "promisor_id",
+    "promisee_id",
+    "description",
+    "category",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the promise."
+    },
+    "promisor_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Entity ID of the party making the promise."
+    },
+    "promisee_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Entity ID of the party receiving the promise."
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "description": "Human-readable description of what is being promised."
+    },
+    "deadline": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "Optional ISO 8601 deadline by which the promise should be fulfilled."
+    },
+    "category": {
+      "type": "string",
+      "enum": ["delivery", "payment", "response", "uptime", "custom"],
+      "description": "The category of the promise."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "fulfilled", "broken", "expired", "disputed"],
+      "description": "Current status of the promise."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of promise creation."
+    },
+    "fulfilled_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of when the promise was fulfilled, or null."
+    }
+  },
+  "additionalProperties": false
+}
